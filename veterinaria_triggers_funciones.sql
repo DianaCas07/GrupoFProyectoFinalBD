@@ -1,3 +1,46 @@
+--funcion contar mascotas que tiene propietario
+CREATE OR REPLACE FUNCTION fn_cantidad_mascotas(
+    p_id_prop INTEGER
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_cantidad INTEGER;
+BEGIN
+
+    SELECT COUNT(*)
+    INTO v_cantidad
+    FROM mascota
+    WHERE id_prop = p_id_prop;
+
+    RETURN v_cantidad;
+
+END;
+$$;
+
+SELECT fn_cantidad_mascotas(3);
+
+--funcion alergias registradas de mascotas
+CREATE OR REPLACE FUNCTION fn_tiene_alergias(
+    p_id_mascota INTEGER
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    RETURN EXISTS (
+        SELECT 1
+        FROM mascota_medicamento_alergia
+        WHERE id_mascota = p_id_mascota
+    );
+
+END;
+$$;
+
+SELECT fn_tiene_alergias(5);
+
 --Triggers y funciones
 
 CREATE OR REPLACE FUNCTION obtener_historial_clinico(p_id_mascota INT)
