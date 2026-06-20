@@ -1,4 +1,4 @@
---triggers y funciones
+--Triggers y funciones
 
 CREATE OR REPLACE FUNCTION obtener_historial_clinico(p_id_mascota INT)
 RETURNS TABLE (
@@ -123,3 +123,49 @@ create trigger tr_alerta_mascota_alergica
 before insert on tratamiento_medicamento
 for each row
 execute function fn_alerta_mascota_alergica();
+
+
+-- Procedimientos almacenados
+
+--Revertir un pago que no se realizo correctamente
+Create or replace PROCEDURE p_revertir_pago (id_factura int)
+Language plpgsql
+as $$
+declare id_facturita int;
+BEGIN
+Select id_fact
+into id_facturita 
+from factura
+where id_fact = id_factura;
+
+if id_facturita is null then
+raise exception 'Id % de factura no encontrado', id_factura;
+end if;
+
+--borramos los detalles de factura
+delete from det_factura
+where id_fact = id_factura;
+
+--actualizamos la factura con datos desde 0
+update factura
+set estado = 'En espera',
+total = 0.00,
+impuesto = 0.00
+where id_fact = id_factura;
+raise notice 'Factura de Id % puesta en espera con exito', id_factura;
+end; $$;
+
+--Creación de factura base para cita
+Create or replace PROCEDURE factura_vacia(id_cita int)
+Language plpgsql
+as $$
+BEGIN
+--Iniciamos una factura vacia
+Insert into factura (id_cita, fecha_emit, total, estado, impuesto)
+Values (id_cita, CURRENT_DATE, 0.00, 'Pendiente', 0.00);
+
+Raise notice 'Factura iniciada con exito para la cita de Id %', id_cita;
+
+EXCEPTION WHEN OTHERS THEN
+Raise exception 'Error al crear la factura base. Motivo: %', SQLERRM;
+end; $$;
