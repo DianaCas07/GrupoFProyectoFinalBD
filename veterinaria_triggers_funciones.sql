@@ -212,3 +212,4 @@ Raise notice 'Factura iniciada con exito para la cita de Id %', id_cita;
 EXCEPTION WHEN OTHERS THEN
 Raise exception 'Error al crear la factura base. Motivo: %', SQLERRM;
 end; $$;
+
